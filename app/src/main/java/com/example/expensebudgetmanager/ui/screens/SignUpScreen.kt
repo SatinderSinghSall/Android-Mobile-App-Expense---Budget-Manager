@@ -22,87 +22,140 @@ fun SignUpScreen(navController: NavController) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var isPasswordVisible by remember { mutableStateOf(false) }
+    var showPassword by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp)
-    ) {
-        // Back Button
-        Column(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(top = 16.dp)
-        ) {
-            IconButton(onClick = { navController.navigateUp() }) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back"
-                )
-            }
+    var nameError by remember { mutableStateOf(false) }
+    var emailError by remember { mutableStateOf(false) }
+    var passwordError by remember { mutableStateOf(false) }
+
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                title = {}
+            )
         }
+    ) { padding ->
 
-        // Main Content
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.Center),
+                .padding(padding)
+                .padding(horizontal = 28.dp)
+                .fillMaxSize()
+                .imePadding(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
 
+            Spacer(Modifier.height(24.dp))
+
             Text(
                 text = "Create Account ✨",
-                style = MaterialTheme.typography.headlineLarge
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Text(
-                text = "Sign up to manage your expenses and budgets effortlessly.",
+                text = "Sign up to manage your expenses, track spending, and stay within budget effortlessly.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 8.dp)
             )
 
+            Spacer(Modifier.height(8.dp))
+
+            // Full Name
             OutlinedTextField(
                 value = name,
-                onValueChange = { name = it },
+                onValueChange = {
+                    name = it
+                    nameError = false
+                },
                 label = { Text("Full Name") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                isError = nameError,
                 shape = MaterialTheme.shapes.medium
             )
 
+            if (nameError) {
+                Text(
+                    text = "Enter your name.",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            // Email
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = {
+                    email = it
+                    emailError = false
+                },
                 label = { Text("Email Address") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                isError = emailError,
                 shape = MaterialTheme.shapes.medium
             )
 
+            if (emailError) {
+                Text(
+                    text = "Enter a valid email address.",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            // Password
             OutlinedTextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = {
+                    password = it
+                    passwordError = false
+                },
                 label = { Text("Password") },
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                isError = passwordError,
                 shape = MaterialTheme.shapes.medium,
-                visualTransformation = if (isPasswordVisible) VisualTransformation.None
-                else PasswordVisualTransformation(),
+                visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                    IconButton(onClick = { showPassword = !showPassword }) {
                         Icon(
-                            imageVector = if (isPasswordVisible) Icons.Default.Visibility
-                            else Icons.Default.VisibilityOff,
+                            imageVector = if (showPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                             contentDescription = "Toggle Password"
                         )
                     }
                 }
             )
 
+            if (passwordError) {
+                Text(
+                    text = "Password must be at least 6 characters.",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            Spacer(Modifier.height(20.dp))
+
+            // CTA
             Button(
-                onClick = { navController.navigate("dashboard") },
+                onClick = {
+                    nameError = name.isBlank()
+                    emailError = email.isBlank() || !email.contains("@")
+                    passwordError = password.length < 6
+
+                    if (!nameError && !emailError && !passwordError) {
+                        navController.navigate("dashboard")
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(54.dp),
@@ -114,18 +167,15 @@ fun SignUpScreen(navController: NavController) {
                 )
             }
 
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
+            Spacer(Modifier.height(8.dp))
+
+            Row {
                 Text(
                     text = "Already have an account?",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
-                Spacer(modifier = Modifier.width(6.dp))
-
+                Spacer(Modifier.width(6.dp))
                 Text(
                     text = "Log In",
                     style = MaterialTheme.typography.bodyMedium.copy(
@@ -134,6 +184,8 @@ fun SignUpScreen(navController: NavController) {
                     modifier = Modifier.clickable { navController.navigate("login") }
                 )
             }
+
+            Spacer(Modifier.height(12.dp))
         }
     }
 }

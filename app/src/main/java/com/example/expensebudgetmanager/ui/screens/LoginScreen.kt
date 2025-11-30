@@ -21,97 +21,140 @@ fun LoginScreen(navController: NavController) {
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var isPasswordVisible by remember { mutableStateOf(false) }
+    var showPassword by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 24.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(top = 16.dp)
-        ) {
-            IconButton(onClick = { navController.navigateUp() }) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "Back"
-                )
-            }
+    var emailError by remember { mutableStateOf(false) }
+    var passwordError by remember { mutableStateOf(false) }
+
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                navigationIcon = {
+                    IconButton(onClick = { navController.navigateUp() }) {
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                },
+                title = {}
+            )
         }
+    ) { padding ->
 
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.Center),
+                .padding(padding)
+                .padding(horizontal = 28.dp)
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
 
+            Spacer(Modifier.height(30.dp))
+
+            // Welcome Title
             Text(
                 text = "Welcome Back 👋",
-                style = MaterialTheme.typography.headlineLarge
+                style = MaterialTheme.typography.headlineLarge,
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Text(
-                text = "Log in to continue tracking your expenses and budget.",
+                text = "Log in to continue tracking your expenses and budgets.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
+            Spacer(Modifier.height(12.dp))
+
+            // Email Field
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = {
+                    email = it
+                    emailError = false
+                },
                 label = { Text("Email Address") },
-                modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                isError = emailError,
                 shape = MaterialTheme.shapes.medium
             )
 
+            if (emailError) {
+                Text(
+                    text = "Enter a valid email address",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            // Password Field
             OutlinedTextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = {
+                    password = it
+                    passwordError = false
+                },
                 label = { Text("Password") },
-                modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                isError = passwordError,
                 shape = MaterialTheme.shapes.medium,
-                visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation =
+                    if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
                 trailingIcon = {
-                    IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                    IconButton(onClick = { showPassword = !showPassword }) {
                         Icon(
-                            imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                            contentDescription = "Toggle Password"
+                            imageVector = if (showPassword)
+                                Icons.Default.Visibility
+                            else
+                                Icons.Default.VisibilityOff,
+                            contentDescription = "Show Password"
                         )
                     }
                 }
             )
 
+            if (passwordError) {
+                Text(
+                    text = "Password must be at least 6 characters.",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            Spacer(Modifier.height(12.dp))
+
+            // Login
             Button(
-                onClick = { navController.navigate("dashboard") },
+                onClick = {
+                    emailError = email.isBlank() || !email.contains("@")
+                    passwordError = password.length < 6
+                    if (!emailError && !passwordError) {
+                        navController.navigate("dashboard")
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(54.dp),
                 shape = MaterialTheme.shapes.medium
             ) {
-                Text(
-                    text = "Log In",
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Text(text = "Log In")
             }
 
+            // Signup Suggestion
             Row(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = "Don’t have an account?",
+                    text = "Don't have an account?",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
-                Spacer(modifier = Modifier.width(6.dp))
-
+                Spacer(Modifier.width(6.dp))
                 Text(
                     text = "Sign Up",
                     style = MaterialTheme.typography.bodyMedium.copy(
@@ -120,6 +163,8 @@ fun LoginScreen(navController: NavController) {
                     modifier = Modifier.clickable { navController.navigate("signup") }
                 )
             }
+
+            Spacer(Modifier.height(18.dp))
         }
     }
 }
