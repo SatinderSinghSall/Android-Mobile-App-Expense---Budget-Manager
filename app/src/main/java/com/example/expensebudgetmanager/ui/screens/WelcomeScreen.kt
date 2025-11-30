@@ -18,21 +18,22 @@ fun WelcomeScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 28.dp),
+            .padding(horizontal = 24.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(22.dp)
+            verticalArrangement = Arrangement.spacedBy(18.dp),
         ) {
 
-            // App Symbol / Logo Placeholder
+            // Logo / Hero
             Text(
                 text = "💰",
-                fontSize = 54.sp
+                fontSize = 62.sp,
+                modifier = Modifier.padding(bottom = 4.dp)
             )
 
-            // Title
+            // App Name
             Text(
                 text = "Expense Manager",
                 style = MaterialTheme.typography.headlineLarge.copy(
@@ -60,9 +61,23 @@ fun WelcomeScreen(navController: NavController) {
                 modifier = Modifier.padding(horizontal = 8.dp),
             )
 
+            Spacer(modifier = Modifier.height(30.dp))
+
+            // Key benefits
+            Column(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalAlignment = Alignment.Start,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                BenefitItem("Quickly log expenses & income")
+                BenefitItem("Visualize spending by category")
+                BenefitItem("Set monthly budgets & track usage")
+                BenefitItem("Minimal UI • Dark mode • Secure")
+            }
+
             Spacer(modifier = Modifier.height(40.dp))
 
-            // Primary CTA
+            // Button: Login
             Button(
                 onClick = { navController.navigate("login") },
                 modifier = Modifier
@@ -76,7 +91,7 @@ fun WelcomeScreen(navController: NavController) {
                 )
             }
 
-            // Secondary CTA
+            // Button: Create Account
             OutlinedButton(
                 onClick = { navController.navigate("signup") },
                 modifier = Modifier
@@ -89,6 +104,30 @@ fun WelcomeScreen(navController: NavController) {
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Footer text
+            Text(
+                text = "Your finances. Your control.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
+    }
+}
+
+// Small reusable bullet component
+@Composable
+fun BenefitItem(text: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = "•", fontSize = 16.sp, modifier = Modifier.padding(end = 6.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
