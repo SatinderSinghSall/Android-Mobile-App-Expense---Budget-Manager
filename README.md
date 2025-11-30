@@ -1,4 +1,4 @@
-# Expense & Budget Manager
+# Expense & Budget Manager: Android Mobile App
 
 A clean and distraction-free Android app to **track expenses, manage budgets, and view financial insights**.  
 Designed for **quick entry and clarity**, with optional authentication for secure data syncing in the future.
