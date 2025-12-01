@@ -15,6 +15,9 @@ import androidx.navigation.NavController
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpScreen(navController: NavController) {
@@ -188,4 +191,11 @@ fun SignUpScreen(navController: NavController) {
             Spacer(Modifier.height(12.dp))
         }
     }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun SignupScreenPreview() {
+    val navController = rememberNavController()
+    SignUpScreen(navController)
 }

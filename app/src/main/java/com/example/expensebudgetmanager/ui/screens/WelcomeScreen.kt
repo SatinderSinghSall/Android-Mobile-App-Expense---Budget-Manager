@@ -12,6 +12,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.compose.material3.OutlinedButton
 
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
+
 @Composable
 fun WelcomeScreen(navController: NavController) {
 
@@ -130,4 +133,11 @@ fun BenefitItem(text: String) {
             color = MaterialTheme.colorScheme.onSurface
         )
     }
+}
+
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun WelcomeScreenPreview() {
+    val navController = rememberNavController()
+    WelcomeScreen(navController)
 }
