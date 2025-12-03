@@ -10,24 +10,35 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.example.expensebudgetmanager.data.repository.AuthRepository
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavController) {
 
+    // Firebase Auth Repo
+    val repo = AuthRepository()
+    val scope = rememberCoroutineScope()
+
+    // Input states
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
 
+    // Validation errors
     var emailError by remember { mutableStateOf(false) }
     var passwordError by remember { mutableStateOf(false) }
+
+    // Loading + error handling
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -56,7 +67,6 @@ fun LoginScreen(navController: NavController) {
 
             Spacer(Modifier.height(30.dp))
 
-            // Welcome Title
             Text(
                 text = "Welcome Back 👋",
                 style = MaterialTheme.typography.headlineLarge,
@@ -64,14 +74,14 @@ fun LoginScreen(navController: NavController) {
             )
 
             Text(
-                text = "Log in to continue tracking your expenses and budgets.",
+                text = "Log in to continue tracking your expenses.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(Modifier.height(12.dp))
 
-            // Email Field
+            // EMAIL
             OutlinedTextField(
                 value = email,
                 onValueChange = {
@@ -81,8 +91,7 @@ fun LoginScreen(navController: NavController) {
                 label = { Text("Email Address") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
-                isError = emailError,
-                shape = MaterialTheme.shapes.medium
+                isError = emailError
             )
 
             if (emailError) {
@@ -93,7 +102,7 @@ fun LoginScreen(navController: NavController) {
                 )
             }
 
-            // Password Field
+            // PASSWORD
             OutlinedTextField(
                 value = password,
                 onValueChange = {
@@ -104,17 +113,16 @@ fun LoginScreen(navController: NavController) {
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
                 isError = passwordError,
-                shape = MaterialTheme.shapes.medium,
                 visualTransformation =
-                    if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                    if (showPassword) VisualTransformation.None
+                    else PasswordVisualTransformation(),
                 trailingIcon = {
                     IconButton(onClick = { showPassword = !showPassword }) {
                         Icon(
                             imageVector = if (showPassword)
                                 Icons.Default.Visibility
-                            else
-                                Icons.Default.VisibilityOff,
-                            contentDescription = "Show Password"
+                            else Icons.Default.VisibilityOff,
+                            contentDescription = "Toggle Password"
                         )
                     }
                 }
@@ -128,26 +136,54 @@ fun LoginScreen(navController: NavController) {
                 )
             }
 
+            // 🔥 Firebase error
+            if (errorMessage.isNotEmpty()) {
+                Text(
+                    text = errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            // 🔄 Loading
+            if (isLoading) {
+                CircularProgressIndicator()
+            }
+
             Spacer(Modifier.height(12.dp))
 
-            // Login
+            // LOGIN BUTTON
             Button(
                 onClick = {
                     emailError = email.isBlank() || !email.contains("@")
                     passwordError = password.length < 6
+
                     if (!emailError && !passwordError) {
-                        navController.navigate("dashboard")
+                        isLoading = true
+                        errorMessage = ""
+
+                        scope.launch {
+                            val result = repo.login(email, password)
+                            isLoading = false
+
+                            if (result.isSuccess) {
+                                navController.navigate("dashboard") {
+                                    popUpTo("login") { inclusive = true }
+                                }
+                            } else {
+                                errorMessage = result.exceptionOrNull()?.message ?: "Login failed"
+                            }
+                        }
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(54.dp),
-                shape = MaterialTheme.shapes.medium
+                    .height(54.dp)
             ) {
-                Text(text = "Log In")
+                Text("Log In")
             }
 
-            // Signup Suggestion
+            // SIGNUP LINK
             Row(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
@@ -163,7 +199,9 @@ fun LoginScreen(navController: NavController) {
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = MaterialTheme.colorScheme.primary
                     ),
-                    modifier = Modifier.clickable { navController.navigate("signup") }
+                    modifier = Modifier.clickable {
+                        navController.navigate("signup")
+                    }
                 )
             }
 

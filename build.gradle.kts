@@ -2,5 +2,10 @@
 plugins {
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.kotlin.android) apply false
-    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0" apply false   // << ADD THIS LINE
+
+    // REQUIRED for Compose with Kotlin 2.x
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0" apply false
+
+    // REQUIRED for Firebase
+    id("com.google.gms.google-services") version "4.4.0" apply false
 }

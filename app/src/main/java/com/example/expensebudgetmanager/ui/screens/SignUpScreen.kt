@@ -10,26 +10,37 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.expensebudgetmanager.data.repository.AuthRepository
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpScreen(navController: NavController) {
 
+    // Firebase repo + coroutine
+    val repo = AuthRepository()
+    val scope = rememberCoroutineScope()
+
+    // Inputs
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var showPassword by remember { mutableStateOf(false) }
 
+    // Validation
     var nameError by remember { mutableStateOf(false) }
     var emailError by remember { mutableStateOf(false) }
     var passwordError by remember { mutableStateOf(false) }
+
+    // Loading + Error Msg
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
 
     Scaffold(
         topBar = {
@@ -63,15 +74,14 @@ fun SignUpScreen(navController: NavController) {
             )
 
             Text(
-                text = "Sign up to manage your expenses, track spending, and stay within budget effortlessly.",
+                text = "Sign up to manage your expenses and budgets effortlessly.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 8.dp)
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(Modifier.height(8.dp))
 
-            // Full Name
+            // NAME FIELD
             OutlinedTextField(
                 value = name,
                 onValueChange = {
@@ -79,10 +89,9 @@ fun SignUpScreen(navController: NavController) {
                     nameError = false
                 },
                 label = { Text("Full Name") },
-                modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                isError = nameError,
-                shape = MaterialTheme.shapes.medium
+                modifier = Modifier.fillMaxWidth(),
+                isError = nameError
             )
 
             if (nameError) {
@@ -93,7 +102,7 @@ fun SignUpScreen(navController: NavController) {
                 )
             }
 
-            // Email
+            // EMAIL FIELD
             OutlinedTextField(
                 value = email,
                 onValueChange = {
@@ -101,21 +110,20 @@ fun SignUpScreen(navController: NavController) {
                     emailError = false
                 },
                 label = { Text("Email Address") },
-                modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
-                isError = emailError,
-                shape = MaterialTheme.shapes.medium
+                modifier = Modifier.fillMaxWidth(),
+                isError = emailError
             )
 
             if (emailError) {
                 Text(
-                    text = "Enter a valid email address.",
+                    text = "Enter a valid email.",
                     color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall
                 )
             }
 
-            // Password
+            // PASSWORD FIELD
             OutlinedTextField(
                 value = password,
                 onValueChange = {
@@ -123,15 +131,19 @@ fun SignUpScreen(navController: NavController) {
                     passwordError = false
                 },
                 label = { Text("Password") },
-                modifier = Modifier.fillMaxWidth(),
                 singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
                 isError = passwordError,
-                shape = MaterialTheme.shapes.medium,
-                visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                visualTransformation =
+                    if (showPassword) VisualTransformation.None
+                    else PasswordVisualTransformation(),
                 trailingIcon = {
                     IconButton(onClick = { showPassword = !showPassword }) {
                         Icon(
-                            imageVector = if (showPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            imageVector = if (showPassword)
+                                Icons.Default.Visibility
+                            else
+                                Icons.Default.VisibilityOff,
                             contentDescription = "Toggle Password"
                         )
                     }
@@ -146,31 +158,56 @@ fun SignUpScreen(navController: NavController) {
                 )
             }
 
+            // GLOBAL ERROR MSG (Firebase)
+            if (errorMessage.isNotEmpty()) {
+                Text(
+                    text = errorMessage,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+
+            // LOADING INDICATOR
+            if (isLoading) {
+                CircularProgressIndicator()
+            }
+
             Spacer(Modifier.height(20.dp))
 
-            // CTA
+            // SIGN UP BUTTON
             Button(
                 onClick = {
+
+                    // Validate
                     nameError = name.isBlank()
                     emailError = email.isBlank() || !email.contains("@")
                     passwordError = password.length < 6
 
                     if (!nameError && !emailError && !passwordError) {
-                        navController.navigate("dashboard")
+
+                        isLoading = true
+                        errorMessage = ""
+
+                        scope.launch {
+                            val result = repo.signup(email, password)
+                            isLoading = false
+
+                            if (result.isSuccess) {
+                                navController.navigate("dashboard") {
+                                    popUpTo("signup") { inclusive = true }
+                                }
+                            } else {
+                                errorMessage = result.exceptionOrNull()?.message ?: "Signup failed"
+                            }
+                        }
                     }
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(54.dp),
-                shape = MaterialTheme.shapes.medium
+                    .height(54.dp)
             ) {
-                Text(
-                    text = "Sign Up",
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Text("Sign Up")
             }
-
-            Spacer(Modifier.height(8.dp))
 
             Row {
                 Text(
@@ -184,7 +221,9 @@ fun SignUpScreen(navController: NavController) {
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = MaterialTheme.colorScheme.primary
                     ),
-                    modifier = Modifier.clickable { navController.navigate("login") }
+                    modifier = Modifier.clickable {
+                        navController.navigate("login")
+                    }
                 )
             }
 
